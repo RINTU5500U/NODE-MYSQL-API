@@ -1,8 +1,8 @@
 const express = require("express")
 const router = express.Router()
 const jwt = require('jsonwebtoken')
-
 const { db } = require('./server')
+const { authentication, authorization } = require("./auth")
 
 //add new user
 router.post('/createUser', async (req, res) => {
@@ -51,7 +51,7 @@ router.post('/login', (req, res) = async (req, res) => {
 })
 
 //update an user
-router.put('/updateUser/:userId', (req, res) => {
+router.put('/updateUser/:userId', authentication, authorization, async (req, res) => {
     let { userId } = req.params
     let { Name, Email, Password, DOB } = req.body
 
@@ -64,7 +64,7 @@ router.put('/updateUser/:userId', (req, res) => {
             msg: 'plz provide user id'
         })
     }
-    db.query('UPDATE Register SET ? WHERE id = ?', [updateData, userId], (error, results) => {
+    await db.query('UPDATE Register SET ? WHERE id = ?', [updateData, userId], (error, results) => {
         if (error) {
             throw error
         }
@@ -73,7 +73,7 @@ router.put('/updateUser/:userId', (req, res) => {
 })
 
 //retrives user by id
-router.get('/getUserById/:userid', async (req, res) => {
+router.get('/getUserById/:userid', authentication, async (req, res) => {
     let { userId } = req.params
     if (!userId) {
         return res.status(400).json({
@@ -89,7 +89,7 @@ router.get('/getUserById/:userid', async (req, res) => {
 })
 
 //retrives all user
-router.get('/getAllUser', async (req, res) => {
+router.get('/getAllUser', authentication, async (req, res) => {
     await db.query("SELECT * FROM Register", (error, results) => {
         if (error) {
             throw error
@@ -99,7 +99,7 @@ router.get('/getAllUser', async (req, res) => {
 })
 
 //delete an user
-router.delete('/deleteUser/:userId', async (req, res) => {
+router.delete('/deleteUser/:userId', authentication, authorization, async (req, res) => {
     let { userId } = req.params
     if (!userId) {
         return res.status(400).json({
